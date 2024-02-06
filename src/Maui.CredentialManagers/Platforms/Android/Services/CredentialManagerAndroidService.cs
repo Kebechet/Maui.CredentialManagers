@@ -5,18 +5,18 @@ using AndroidX.Core.Content;
 using AndroidX.Credentials;
 using Maui.CredentialManagers.Platforms.Android.Callbacks;
 using SatisFIT.Client.App.Platforms.Android.Services.Test;
-using Application = Microsoft.Maui.Controls.Application;
 
 namespace Maui.CredentialManagers.Platforms.Android.Services;
 
 public class CredentialManagerAndroidService
 {
     private readonly ICredentialManager _credentialManager;
-    private Context _activityContext => Platform.CurrentActivity?.BaseContext ?? Platform.AppContext;
+    private Context _activityContext => Platform.CurrentActivity ??
+        throw new Exception("Current activity is null");
 
     public CredentialManagerAndroidService()
     {
-        _credentialManager = CredentialManager.Create(Platform.AppContext);
+        _credentialManager = CredentialManager.Create(_activityContext);
     }
 
     public async Task<CreatePublicKeyCredentialResponse?> CreatePublicKeyCredential(CreatePublicKeyCredentialRequest request, CancellationToken cancellationToken)
@@ -120,22 +120,11 @@ public class CredentialManagerAndroidService
     {
         var callback = new CredentialManagerCallback<CreateCredentialResponse>(cancellationToken);
 
-        var context1 = Platform.AppContext;//1
-        var context2 = Platform.CurrentActivity.BaseContext;//2
-        var context3 = Platform.CurrentActivity?.ApplicationContext;//1
-        var context4 = Application.Current?.Handler?.MauiContext?.Context;//1
-
-        
-        //var context5 = this.
-        //Toolkit
-
-        var act = context2;
-
         _credentialManager.CreateCredentialAsync(
-            act,
+            _activityContext,
             request,
             null,
-            ContextCompat.GetMainExecutor(act),
+            ContextCompat.GetMainExecutor(_activityContext),
             callback
         );
 
