@@ -1,8 +1,10 @@
 ﻿using Android.Annotation;
 using Android.App;
 using Android.Content;
+using Android.OS;
 using AndroidX.Core.Content;
 using AndroidX.Credentials;
+using AndroidX.Credentials.Exceptions;
 using Maui.CredentialManagers.Platforms.Android.Callbacks;
 using SatisFIT.Client.App.Platforms.Android.Services.Test;
 
@@ -42,7 +44,7 @@ public class CredentialManagerAndroidService
 
     public async Task<GetCredentialResponse?> GetCredential(GetCredentialRequest request, CancellationToken cancellationToken)
     {
-        var callback = new CredentialManagerCallback<GetCredentialResponse>(cancellationToken);
+        var callback = new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>(cancellationToken);
 
         _credentialManager.GetCredentialAsync(
             _activityContext,
@@ -58,7 +60,7 @@ public class CredentialManagerAndroidService
     [TargetApi(Value = 34)]
     public async Task<PrepareGetCredentialResponse?> PrepareGetCredential(GetCredentialRequest request, CancellationToken cancellationToken)
     {
-        var callback = new CredentialManagerCallback<PrepareGetCredentialResponse>(cancellationToken);
+        var callback = new CredentialManagerCallback<PrepareGetCredentialResponse, GetCredentialException>(cancellationToken);
 
         _credentialManager.PrepareGetCredentialAsync(
             request,
@@ -70,55 +72,27 @@ public class CredentialManagerAndroidService
         return await callback.Task;
     }
 
-    //[Binder] Caught a RuntimeException from the binder stub implementation.
-    //[Binder] java.lang.NullPointerException: Parameter specified as non-null is null: method androidx.credentials.CredentialProviderFrameworkImpl$onClearCredential$outcome$1.onResult, parameter response
-    //[Binder] 	at androidx.credentials.CredentialProviderFrameworkImpl$onClearCredential$outcome$1.onResult(Unknown Source:3)
-    //[Binder] 	at androidx.credentials.CredentialProviderFrameworkImpl$onClearCredential$outcome$1.onResult(CredentialProviderFrameworkImpl.kt:367)
-    //[Binder] 	at android.credentials.CredentialManager$ClearCredentialStateTransport.onSuccess(CredentialManager.java:775)
-    //[Binder] 	at android.credentials.IClearCredentialStateCallback$Stub.onTransact(IClearCredentialStateCallback.java:95)
-    //[Binder] 	at android.os.Binder.execTransactInternal(Binder.java:1363)
-    //[Binder] 	at android.os.Binder.execTransact(Binder.java:1304)
-    //TODO - fix and make public
-    private async Task ClearCredentialState()
+    public async Task ClearCredentialState(CancellationToken cancellationToken)
     {
         var request = new ClearCredentialStateRequest();
-        var tcs = new TaskCompletionSource();
+        var callback = new CredentialManagerVoidCallback<ClearCredentialException>(cancellationToken);
 
-        _credentialManager.ClearCredentialState(
+        var cancellationSignal = new CancellationSignal();
+        cancellationToken.Register(() => cancellationSignal.Cancel());
+
+        _credentialManager.ClearCredentialStateAsync(
             request,
-            new Continuation(tcs, default)
+            cancellationSignal,
+            ContextCompat.GetMainExecutor(_activityContext),
+            callback
         );
 
-        await tcs.Task;
+        await callback.Task;
     }
-    //crashes on exception:
-    //[CredManProvService] In CredentialProviderFrameworkImpl onClearCredential
-    //[Binder] Caught a RuntimeException from the binder stub implementation.
-    //[Binder] java.lang.NullPointerException: Parameter specified as non-null is null: method androidx.credentials.CredentialProviderFrameworkImpl$onClearCredential$outcome$1.onResult, parameter response
-    //[Binder] 	at androidx.credentials.CredentialProviderFrameworkImpl$onClearCredential$outcome$1.onResult(Unknown Source:3)
-    //[Binder] 	at androidx.credentials.CredentialProviderFrameworkImpl$onClearCredential$outcome$1.onResult(CredentialProviderFrameworkImpl.kt:367)
-    //[Binder] 	at android.credentials.CredentialManager$ClearCredentialStateTransport.onSuccess(CredentialManager.java:775)
-    //[Binder] 	at android.credentials.IClearCredentialStateCallback$Stub.onTransact(IClearCredentialStateCallback.java:95)
-    //[Binder] 	at android.os.Binder.execTransactInternal(Binder.java:1363)
-    //[Binder] 	at android.os.Binder.execTransact(Binder.java:1304)
-    //public async Task ClearCredentialState(CancellationToken cancellationToken)
-    //{
-    //    var request = new ClearCredentialStateRequest();
-    //    var callback = new CredentialManagerVoidCallback(cancellationToken);
-
-    //    _credentialManager.ClearCredentialStateAsync(
-    //        request,
-    //        null,
-    //        ContextCompat.GetMainExecutor(_activityContext),
-    //        callback
-    //    );
-
-    //    await callback.Task;
-    //}
 
     private Task<CreateCredentialResponse?> CreateCredential(CreateCredentialRequest request, CancellationToken cancellationToken)
     {
-        var callback = new CredentialManagerCallback<CreateCredentialResponse>(cancellationToken);
+        var callback = new CredentialManagerCallback<CreateCredentialResponse, CreateCredentialException>(cancellationToken);
 
         _credentialManager.CreateCredentialAsync(
             _activityContext,

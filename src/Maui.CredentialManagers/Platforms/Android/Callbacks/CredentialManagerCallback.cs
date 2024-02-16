@@ -4,8 +4,9 @@ using Maui.CredentialManagers.Platforms.Android.Callbacks.Base;
 
 namespace SatisFIT.Client.App.Platforms.Android.Services.Test;
 
-internal sealed class CredentialManagerCallback<TResponse> : CallbackBase<TResponse>, ICredentialManagerCallback
-    where TResponse : Java.Lang.Object
+internal sealed class CredentialManagerCallback<TResult, TException> : CallbackBase<TResult, TException>, ICredentialManagerCallback
+    where TResult : Java.Lang.Object
+    where TException : Java.Lang.Exception
 {
     public CredentialManagerCallback(CancellationToken cancellationToken) : base(cancellationToken)
     {
@@ -13,16 +14,16 @@ internal sealed class CredentialManagerCallback<TResponse> : CallbackBase<TRespo
 
     public void OnResult(Java.Lang.Object? result)
     {
-        var passwordResponse = result is not null
-            ? (TResponse)result
+        var parsedResult = result is not null
+            ? (TResult)result
             : null;
 
-        ReportSuccess(passwordResponse);
+        ReportSuccess(parsedResult);
     }
 
     public void OnError(Java.Lang.Object e)
     {
-        var exception = (Exception)e.JavaCast<Java.Lang.Exception>();
+        var exception = e.JavaCast<TException>();
         ReportException(exception);
     }
 }

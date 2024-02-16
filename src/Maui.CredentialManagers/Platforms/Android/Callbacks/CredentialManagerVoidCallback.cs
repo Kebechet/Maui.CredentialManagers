@@ -4,7 +4,8 @@ using Maui.CredentialManagers.Platforms.Android.Callbacks.Base;
 
 namespace Maui.CredentialManagers.Platforms.Android.Callbacks;
 
-internal class CredentialManagerVoidCallback : VoidCallbackBase, ICredentialManagerCallback
+internal class CredentialManagerVoidCallback<TException> : VoidCallbackBase<TException>, ICredentialManagerCallback
+    where TException : Java.Lang.Exception
 {
     public CredentialManagerVoidCallback(CancellationToken cancellationToken) : base(cancellationToken)
     {
@@ -17,7 +18,7 @@ internal class CredentialManagerVoidCallback : VoidCallbackBase, ICredentialMana
 
     public void OnError(Java.Lang.Object e)
     {
-        var exception = (Exception)e.JavaCast<Java.Lang.Exception>();
+        var exception = e.JavaCast<TException>();
         ReportException(exception);
     }
 }

@@ -1,6 +1,8 @@
 ﻿namespace Maui.CredentialManagers.Platforms.Android.Callbacks.Base;
 
-internal abstract class CallbackBase<TResult> : Java.Lang.Object
+internal abstract class CallbackBase<TResult, TException> : Java.Lang.Object
+    where TResult : Java.Lang.Object
+    where TException : Java.Lang.Exception
 {
     private readonly TaskCompletionSource<TResult?> _taskCompletionSource;
 
@@ -17,7 +19,7 @@ internal abstract class CallbackBase<TResult> : Java.Lang.Object
         _taskCompletionSource.TrySetResult(result);
     }
 
-    protected void ReportException(Exception exception)
+    protected void ReportException(TException exception)
     {
         _taskCompletionSource.TrySetException(exception);
     }
