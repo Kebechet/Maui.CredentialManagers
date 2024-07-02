@@ -142,7 +142,7 @@ public partial class CredentialManagerService
                         }
                     };
                 }
-                catch (GoogleIdTokenParsingException e)
+                catch (GoogleIdTokenParsingException)
                 {
                     return new CredentialManagerResultDto<CredentialDto>
                     {
